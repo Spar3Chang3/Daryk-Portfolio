@@ -2,14 +2,14 @@ import { writable } from 'svelte/store';
 
 export const MOBILE_MATCH_MEDIA = '(max-width: 768px)';
 export const REDUCED_MOTION_MEDIA = '(prefers-reduced-motion: reduce)';
-export const DARK_MODE_MEDIA = '(prefers-color-scheme: dark)';
+export const DARK_THEME_MEDIA = '(prefers-color-scheme: dark)';
 export const CONTRAST_MODE_MEDIA = '(prefers-contrast: more)';
 
 export const WORLD_TIME_API = 'http://worldtimeapi.org/api/ip';
 
 export const MediaIsMobile = writable(false);
 export const PrefersReducedMotion = writable(false);
-export const PrefersDarkMode = writable(false);
+export const PrefersDarkTheme = writable(false);
 export const PrefersContrast = writable(false);
 
 export const SiteLinks = {
@@ -101,7 +101,7 @@ export function stopMediaMobileListener() {
 }
 
 export function startReducedMotionListener() {
-    motionQuery = window.matchMedia(MOBILE_MATCH_MEDIA);
+    motionQuery = window.matchMedia(REDUCED_MOTION_MEDIA);
     PrefersReducedMotion.set(motionQuery.matches);
 
     motionListener = (e) => {
@@ -117,4 +117,9 @@ export function stopReducedMotionListener() {
         motionQuery = null;
         motionListener = null;
     }
+}
+
+export function startDarkThemeListener() {
+    themeQuery = window.matchMedia(DARK_THEME_MEDIA);
+
 }
