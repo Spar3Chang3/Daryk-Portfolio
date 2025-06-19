@@ -1,0 +1,9 @@
+My Philosophy
+
+> I believe that a great user experience is born from a combination of radical empathy and technical excellence.
+
+From the moment I write the first line of code, I'm thinking about the end-user. How can I make this faster? How can this be more intuitive? This obsession with optimization is what drew me to frameworks like Svelte, where performance isn't an afterthought—it's the foundation. I truly enjoy the process of architecting components and state management that result in a seamless and lightning-fast interaction for the user.
+
+But speed is only part of the equation.
+
+The digital world should be accessible to everyone. That's why I am passionate about creating inclusive and accessible UI/layouts. I focus on semantic HTML, ARIA landmarks, and responsive design patterns that ensure the applications I build are usable and enjoyable for the widest possible audience. It's a challenge I gladly embrace: finding the single, elegant layout that serves everyone well.

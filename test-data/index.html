@@ -156,6 +156,8 @@
 
 			await Promise.all(promises);
 
+			appendFinalFrameBlocks(allImagesData);
+
 			// ✨ Now safe to compare
 			const topLines = findFirstChangeLines(allImagesData);
 			const bottomLines = findLastChangeLines(allImagesData);
@@ -451,6 +453,97 @@
 			return div;
 		}
 
+		function appendFinalFrameBlocks(allImagesData) {
+			const preview = document.getElementById("bmp-preview");
+			if (!preview || allImagesData.length === 0) return;
+
+			const firstFrame = allImagesData[0];
+			const topSlice = firstFrame.slice(0, 38);
+			const dynamicSlices = allImagesData.map(f => f.slice(38, 119));
+			const bottomSlice = firstFrame.slice(119);
+
+			const formatBlock = (label, lines) => {
+				const pre = document.createElement("pre");
+				pre.style.background = "#222";
+				pre.style.color = "#fff";
+				pre.style.padding = "1em";
+				pre.style.overflowX = "auto";
+				pre.style.marginTop = "1em";
+				pre.textContent = `${label} = [\n  ` +
+						lines.map(arr => arr.join(", ")).join(",\n  ") +
+						"\n];";
+				return pre;
+			};
+
+			const container = document.createElement("div");
+			container.style.marginTop = "3em";
+			container.appendChild(formatBlock("// 🔼 Top Static Lines", topSlice));
+			container.appendChild(formatBlock("// 🔽 Bottom Static Lines", bottomSlice));
+			container.appendChild(formatBlock("// 🎞️ Changing Middle Lines (Frame-by-Frame)", dynamicSlices));
+
+			preview.appendChild(container);
+
+			let topFrameBlock = [];
+			let bottomFrameBlock = [];
+			let dynamicFrameBlocks = [];
+
+			for (let uint8Arr of topSlice) {
+				for (let i=0;i<uint8Arr.length;i++) {
+					topFrameBlock.push(uint8Arr[i]);
+				}
+			}
+			for (let uint8Arr of bottomSlice) {
+				for (let i=0;i<uint8Arr.length;i++) {
+					bottomFrameBlock.push(uint8Arr[i]);
+				}
+			}
+			for (let frame of dynamicSlices) {
+				let frameBlock = [];
+				for (let uint8Arr of frame) {
+					for (let i=0;i<frame.length;i++) {
+						frameBlock.push(uint8Arr[i]);
+					}
+				}
+				dynamicFrameBlocks.push(frameBlock);
+			}
+
+			const downloadData = {
+				staticDataAbove: topFrameBlock,
+				staticDataBelow: bottomFrameBlock,
+				dynamicData: dynamicFrameBlocks,
+				dynamicDataStart: 38,
+				dynamicDataEnd: 119
+			}
+
+			const json = stringifyWithArrayWrap(downloadData);
+			const blob = new Blob([json], { type: "application/json" });
+			const link = document.createElement("a");
+			link.href = URL.createObjectURL(blob);
+			link.download = "portrait-jmap.json";
+			document.body.appendChild(link);
+			link.click();
+			link.style.display = 'none';
+		}
+
+		function stringifyWithArrayWrap(obj, itemsPerLine = 3, space = 2) {
+			return JSON.stringify(obj, (key, value) => value, space)
+					.replace(
+							/\[\s*([\d,\s]+)\s*\]/g,
+							(match, inner) => {
+								const nums = inner
+										.split(',')
+										.map(n => n.trim())
+										.filter(n => n.length > 0);
+
+								const lines = [];
+								for (let i = 0; i < nums.length; i += itemsPerLine) {
+									lines.push(nums.slice(i, i + itemsPerLine).join(', '));
+								}
+
+								return `[\n  ${lines.join(',\n  ')}\n]`;
+							}
+					);
+		}
 
 		window.addEventListener('DOMContentLoaded', () => {
 			document.getElementById('input').addEventListener('change', (e) => {

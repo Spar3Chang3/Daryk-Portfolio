@@ -20,6 +20,12 @@ export const SiteLinks = {
     resume: '/resume',
 }
 
+export const DataLinks = {
+    portraitMap: '/portrait-jmap.json',
+    portraitInit: '/init-portrait-jmap.png',
+    aboutMe: '/about-me.txt'
+}
+
 export const StdPlatforms = {
     android: 'android',
     ios: 'iOS',
@@ -108,12 +114,12 @@ export function startReducedMotionListener() {
         PrefersReducedMotion.set(motionQuery.matches);
     }
 
-    motionQuery.addEventListener('change', mediaMobileListener);
+    motionQuery.addEventListener('change', motionListener);
 }
 
 export function stopReducedMotionListener() {
     if (motionQuery && motionListener) {
-        motionQuery.removeEventListener('change', mediaMobileListener);
+        motionQuery.removeEventListener('change', motionListener);
         motionQuery = null;
         motionListener = null;
     }
@@ -121,5 +127,52 @@ export function stopReducedMotionListener() {
 
 export function startDarkThemeListener() {
     themeQuery = window.matchMedia(DARK_THEME_MEDIA);
+    PrefersDarkTheme.set(themeQuery.matches);
 
+    themeListener = (e) => {
+        PrefersDarkTheme.set(themeQuery.matches);
+    }
+
+    themeQuery.addEventListener('change', themeListener);
+}
+
+export function stopDarkThemeListener() {
+    if (themeQuery && themeListener) {
+        themeListener.removeEventListener('change', themeListener);
+        themeQuery = null;
+        themeListener = null;
+    }
+}
+
+export function startContrastListener() {
+    contrastQuery = window.matchMedia(CONTRAST_MODE_MEDIA);
+    PrefersContrast.set(contrastQuery.matches);
+
+    contrastListener = (e) => {
+        PrefersContrast.set(contrastQuery.matches);
+    }
+
+    contrastQuery.addEventListener('change', contrastListener);
+}
+
+export function stopContrastListener() {
+    if (contrastQuery && contrastListener) {
+        contrastListener.removeEventListener('change', contrastListener);
+        contrastQuery = null;
+        contrastListener = null;
+    }
+}
+
+export function startAllListeners() {
+    startMediaMobileListener();
+    startReducedMotionListener();
+    startDarkThemeListener();
+    startContrastListener();
+}
+
+export function stopAllListeners() {
+    stopMediaMobileListener();
+    stopReducedMotionListener();
+    stopDarkThemeListener();
+    stopContrastListener();
 }
