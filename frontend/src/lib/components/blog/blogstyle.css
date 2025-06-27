@@ -1,0 +1,21 @@
+.meta {
+    display: flex;
+    flex-direction: row;
+
+    height: fit-content;
+    width: fit-content;
+
+    align-items: center;
+    justify-content: center;
+
+
+    gap: 1rem;
+}
+
+.meta img {
+    height: 4rem;
+    width: 4rem;
+    object-fit: contain;
+    border-radius: 50%;
+    aspect-ratio: 1 / 1;
+}

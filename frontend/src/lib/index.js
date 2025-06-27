@@ -23,7 +23,9 @@ export const SiteLinks = {
 export const DataLinks = {
     portraitMap: '/portrait-jmap.json',
     portraitInit: '/init-portrait-jmap.png',
-    aboutMe: '/about-me.txt'
+    aboutMe: '/about-me.txt',
+    blogMetaPath: '/blog/meta/',
+    blogArticlePath: '/blog/articles/'
 }
 
 export const ExternalLinks = {
