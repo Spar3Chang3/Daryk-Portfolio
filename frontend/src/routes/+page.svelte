@@ -1,2 +1,9 @@
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to read the documentation</p>
+<script lang="js">
+    import { goto } from '$app/navigation';
+    import { onMount } from 'svelte';
+    import { SiteLinks } from '$lib/index.js';
+
+    onMount(() => {
+        goto(SiteLinks.home);
+    });
+</script>

@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>GIF to BMP Converter</title>
+	<style>
+		body {
+			font-family: monospace;
+			padding: 2em;
+			background: #1e1e1e;
+			color: #ddd;
+		}
+		h3 {
+			color: #f39c12;
+		}
+		pre {
+			background: #2b2b2b;
+			padding: 0.5em;
+			border-left: 4px solid #f39c12;
+			overflow: auto;
+			max-height: 50vh;
+			position: relative;
+		}
+		code {
+			background: #2b2b2b;
+			padding: 0.5em;
+			border-left: 4px solid #f39c12;
+			overflow-x: auto;
+			display: block;
+			max-width: 100%;
+			font-family: monospace;
+			color: #eee;
+		}
+		details summary {
+			cursor: pointer;
+			font-weight: bold;
+			color: #f39c12;
+			padding: 0.4em;
+			user-select: none;
+		}
+		button {
+			background: #333;
+			color: #f39c12;
+			border: 1px solid #f39c12;
+			border-radius: 4px;
+			cursor: pointer;
+		}
+		button:hover {
+			background: #f39c12;
+			color: black;
+		}
+		.input {
+			display: inline-block;
+			padding: 0.6em 1em;
+			border: 2px solid #f39c12;
+			background: #1e1e1e;
+			color: #f39c12;
+			font-weight: bold;
+			border-radius: 6px;
+			cursor: pointer;
+			transition: background 0.2s ease;
+		}
+
+		.input:hover {
+			background: #f39c12;
+			color: #1e1e1e;
+		}
+
+		.combined-preview {
+			display: flex;
+			justify-content: space-between;
+			align-items: flex-start;
+			margin-top: 3em;
+			gap: 2em;
+		}
+
+		.frame-strip {
+			display: flex;
+			overflow-x: auto;
+			gap: 0.5em;
+			max-width: 70%;
+			border: 1px solid #333;
+			padding: 0.5em;
+		}
+
+		.frame-strip canvas {
+			border: 1px solid #666;
+			image-rendering: pixelated;
+		}
+
+		.mock-gif {
+			flex-shrink: 0;
+			border: 2px solid #f39c12;
+			background: black;
+			width: auto;
+			height: auto;
+		}
+		.change-info {
+			font-weight: bold;
+			background: #1a1a1a;
+			border-left: 4px solid #66d9ef;
+			padding: 0.5em 1em;
+		}
+		.pixel-line {
+			position: absolute;
+			left: 0;
+			right: 0;
+			height: 1px;
+		}
+	</style>
+	<script defer type="module">
+		const PIXEL_TOLERANCE = 20;
+
+		const allImagesData = [];
+		const downloadImages = false;
+
+		async function convertGifsToBmps(files) {
+			const promises = [];
+			let fileIndex = 0;
+
+			for (const file of files) {
+				if (!file.type.startsWith("image/gif")) continue;
+
+				const reader = new FileReader();
+				const p = new Promise((resolve) => {
+					reader.onload = function (e) {
+						const img = new Image();
+						img.onload = async function () {
+							const canvas = document.createElement("canvas");
+							canvas.width = img.width;
+							canvas.height = img.height;
+							const ctx = canvas.getContext("2d");
+							ctx.drawImage(img, 0, 0);
+
+							const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+							await displayImagePixels(imageData, file.name, fileIndex++);
+
+							if (downloadImages) {
+								const bmpBlob = createBMPBlob(imageData);
+								const a = document.createElement("a");
+								a.href = URL.createObjectURL(bmpBlob);
+								a.download = file.name.replace(/\.gif$/i, ".bmp");
+								document.body.appendChild(a);
+								a.click();
+								document.body.removeChild(a);
+							}
+							resolve();
+						};
+						img.src = e.target.result;
+					};
+				});
+
+				reader.readAsDataURL(file);
+				promises.push(p);
+			}
+
+			await Promise.all(promises);
+
+			appendFinalFrameBlocks(allImagesData);
+
+			// ✨ Now safe to compare
+			const topLines = findFirstChangeLines(allImagesData);
+			const bottomLines = findLastChangeLines(allImagesData);
+
+			// Show result in DOM
+			const previewSections = document.querySelectorAll('#bmp-preview > section');
+
+			for (let i = 1; i < previewSections.length; i++) {
+				const start = topLines[i - 1];
+				const end = bottomLines[i - 1];
+				const info = createChangeInfo(start, end);
+				previewSections[i].insertBefore(info, previewSections[i].children[2]); // after image canvas
+			}
+
+
+			// Populate #combined-preview when all done
+			const strip = document.getElementById("bmp-strip");
+			const mockCanvas = document.getElementById("gif-mock");
+			const mockCtx = mockCanvas.getContext("2d");
+			const mockFrames = [];
+
+			for (const section of document.querySelectorAll("#bmp-preview > details")) {
+				const fullCanvas = section.querySelector("canvas");
+				if (!fullCanvas) continue;
+
+				const clone = document.createElement("canvas");
+				clone.width = fullCanvas.width;
+				clone.height = fullCanvas.height;
+				clone.getContext("2d").drawImage(fullCanvas, 0, 0);
+				strip.appendChild(clone);
+
+				// Store image data for the mock GIF preview
+				const frameImageData = clone.getContext("2d").getImageData(0, 0, clone.width, clone.height);
+				mockFrames.push(frameImageData);
+			}
+
+			// Resize mock canvas to match frames
+			if (mockFrames.length > 0) {
+				mockCanvas.width = mockFrames[0].width;
+				mockCanvas.height = mockFrames[0].height;
+
+				let index = 0;
+				setInterval(() => {
+					mockCtx.putImageData(mockFrames[index], 0, 0);
+					index = (index + 1) % mockFrames.length;
+				}, 100);
+			}
+		}
+
+		function createBMPBlob(imageData) {
+			const w = imageData.width;
+			const h = imageData.height;
+			const rowSize = Math.ceil(w * 3 / 4) * 4;
+			const imageSize = rowSize * h;
+			const fileSize = 54 + imageSize;
+
+			const buffer = new ArrayBuffer(fileSize);
+			const view = new DataView(buffer);
+
+			let offset = 0;
+
+			// Bitmap file header (14 bytes)
+			view.setUint8(offset++, 0x42); // B
+			view.setUint8(offset++, 0x4D); // M
+			view.setUint32(offset, fileSize, true); offset += 4;
+			view.setUint32(offset, 0, true); offset += 4;
+			view.setUint32(offset, 54, true); offset += 4; // Pixel data offset
+
+			// DIB header (40 bytes)
+			view.setUint32(offset, 40, true); offset += 4;
+			view.setInt32(offset, w, true); offset += 4;
+			view.setInt32(offset, -h, true); offset += 4; // negative height = top-down
+			view.setUint16(offset, 1, true); offset += 2; // planes
+			view.setUint16(offset, 24, true); offset += 2; // bits per pixel
+			view.setUint32(offset, 0, true); offset += 4; // compression
+			view.setUint32(offset, imageSize, true); offset += 4;
+			view.setInt32(offset, 2835, true); offset += 4; // x pixels per meter (72 DPI)
+			view.setInt32(offset, 2835, true); offset += 4;
+			view.setUint32(offset, 0, true); offset += 4;
+			view.setUint32(offset, 0, true); offset += 4;
+
+			// Pixel array (bottom-up)
+			const data = imageData.data;
+			let pad = rowSize - w * 3;
+			for (let y = 0; y < h; y++) {
+				for (let x = 0; x < w; x++) {
+					const i = (y * w + x) * 4;
+					view.setUint8(offset++, data[i + 2]); // R
+					view.setUint8(offset++, data[i + 1]); // G
+					view.setUint8(offset++, data[i]);     // B
+				}
+				offset += pad;
+			}
+
+			return new Blob([buffer], { type: "image/bmp" });
+		}
+
+		function displayImagePixels(imageData, fileName, index) {
+			return new Promise((resolve) => {
+				const { width, height, data } = imageData;
+
+				const container = document.getElementById("bmp-preview") || (() => {
+					const div = document.createElement("div");
+					div.id = "bmp-preview";
+					document.body.appendChild(div);
+					return div;
+				})();
+
+				const section = document.createElement("details");
+				section.style.marginBottom = "3em";
+
+				const heading = document.createElement("summary");
+				heading.textContent = `Image ${index + 1}: ${fileName}`;
+				section.appendChild(heading);
+
+				const fullCanvas = document.createElement("canvas");
+				fullCanvas.width = width;
+				fullCanvas.height = height;
+				fullCanvas.style.border = "1px solid #555";
+				fullCanvas.style.marginBottom = "1em";
+				fullCanvas.style.imageRendering = "pixelated";
+				const fullCtx = fullCanvas.getContext("2d");
+				fullCtx.putImageData(imageData, 0, 0);
+				section.appendChild(fullCanvas);
+
+				const rowWrapper = document.createElement("div");
+				rowWrapper.style.display = "flex";
+				rowWrapper.style.flexDirection = "column";
+				rowWrapper.style.gap = "0.5em";
+
+				const frameRows = [];
+
+				for (let y = 0; y < height; y++) {
+					const row = new Uint8ClampedArray(width * 4);
+					for (let x = 0; x < width; x++) {
+						const i = (y * width + x) * 4;
+						row.set(data.slice(i, i + 4), x * 4);
+					}
+					frameRows.push(row);
+
+					const rowImageData = new ImageData(row, width, 1);
+
+					const tempCode = document.createElement("code");
+					tempCode.textContent = `new Uint8ClampedArray([${row.join(",")}])`;
+					tempCode.style.position = "absolute";
+					tempCode.style.visibility = "hidden";
+					tempCode.style.whiteSpace = "nowrap";
+					tempCode.style.padding = "0.25em 0.5em";
+					document.body.appendChild(tempCode);
+					const codeHeight = tempCode.offsetHeight;
+					document.body.removeChild(tempCode);
+
+					const rowCanvas = document.createElement("canvas");
+					rowCanvas.width = width;
+					rowCanvas.height = codeHeight;
+					const rowCtx = rowCanvas.getContext("2d");
+					for (let i = 0; i < codeHeight; i++) {
+						rowCtx.putImageData(rowImageData, 0, i);
+					}
+
+					// ---- CODE + BUTTONS + LABEL ----
+					const rowLine = document.createElement("div");
+					rowLine.style.display = "flex";
+					rowLine.style.alignItems = "center";
+					rowLine.style.gap = "0.5em";
+
+					const lineLabel = document.createElement("span");
+					lineLabel.textContent = `${y}`.padStart(3, " ");
+					lineLabel.style.color = "#999";
+					lineLabel.style.width = "2em";
+					lineLabel.style.textAlign = "right";
+
+					const code = document.createElement("code");
+					const rawValues = row.join(",");
+					const fullExpr = `new Uint8ClampedArray([${rawValues}])`;
+					code.textContent = fullExpr;
+					code.style.overflowX = "auto";
+					code.style.whiteSpace = "nowrap";
+					code.style.padding = "0.25em 0.5em";
+					code.style.background = "#2b2b2b";
+					code.style.borderLeft = "4px solid #f39c12";
+					code.style.margin = "0";
+					code.style.flex = "1";
+					code.style.maxHeight = codeHeight + "px";
+					code.style.display = "block";
+
+					const copyBtn = document.createElement("button");
+					copyBtn.textContent = "📋 Values";
+					copyBtn.style.fontSize = "0.8em";
+					copyBtn.style.padding = "0.2em 0.6em";
+					copyBtn.onclick = () => navigator.clipboard.writeText(rawValues);
+
+					const copyCodeBtn = document.createElement("button");
+					copyCodeBtn.textContent = "📋 Code";
+					copyCodeBtn.style.fontSize = "0.8em";
+					copyCodeBtn.style.padding = "0.2em 0.6em";
+					copyCodeBtn.onclick = () => navigator.clipboard.writeText(fullExpr);
+
+					rowLine.appendChild(lineLabel);
+					rowLine.appendChild(rowCanvas);
+					rowLine.appendChild(code);
+					rowLine.appendChild(copyBtn);
+					rowLine.appendChild(copyCodeBtn);
+					rowWrapper.appendChild(rowLine);
+				}
+
+				allImagesData.push(frameRows);
+
+				section.appendChild(rowWrapper);
+				container.appendChild(section);
+				resolve(); // done with this image
+			});
+		}
+
+		function findFirstChangeLines(imagesData) {
+			const changeStarts = [];
+
+			for (let i = 1; i < imagesData.length; i++) {
+				const prev = imagesData[i - 1];
+				const curr = imagesData[i];
+				let firstDiff = curr.length;
+
+				for (let y = 0; y < Math.min(prev.length, curr.length); y++) {
+					const a = prev[y];
+					const b = curr[y];
+					let same = true;
+
+					for (let k = 0; k < a.length; k += 4) {
+						const dr = Math.abs(a[k] - b[k]);
+						const dg = Math.abs(a[k + 1] - b[k + 1]);
+						const db = Math.abs(a[k + 2] - b[k + 2]);
+
+						if (dr > PIXEL_TOLERANCE || dg > PIXEL_TOLERANCE || db > PIXEL_TOLERANCE) {
+							same = false;
+							break;
+						}
+					}
+
+					if (!same) {
+						firstDiff = y;
+						break;
+					}
+				}
+
+				changeStarts.push(firstDiff);
+			}
+
+			return changeStarts;
+		}
+
+		function findLastChangeLines(imagesData) {
+			const changeEnds = [];
+
+			for (let i = 1; i < imagesData.length; i++) {
+				const prev = imagesData[i - 1];
+				const curr = imagesData[i];
+				let lastDiff = 0;
+
+				for (let y = prev.length - 1; y >= 0; y--) {
+					const a = prev[y];
+					const b = curr[y];
+					let same = true;
+
+					for (let k = 0; k < a.length; k += 4) {
+						const dr = Math.abs(a[k] - b[k]);
+						const dg = Math.abs(a[k + 1] - b[k + 1]);
+						const db = Math.abs(a[k + 2] - b[k + 2]);
+
+						if (dr > PIXEL_TOLERANCE || dg > PIXEL_TOLERANCE || db > PIXEL_TOLERANCE) {
+							same = false;
+							break;
+						}
+					}
+
+					if (!same) {
+						lastDiff = y;
+						break;
+					}
+				}
+
+				changeEnds.push(lastDiff);
+			}
+
+			return changeEnds;
+		}
+
+		function createChangeInfo(startLine, endLine) {
+			const div = document.createElement("div");
+			div.className = "change-info";
+			div.style.marginBottom = "0.5em";
+			div.style.color = "#66d9ef";
+			div.textContent = `Changes start at line ${startLine}, end at line ${endLine}`;
+			return div;
+		}
+
+		function appendFinalFrameBlocks(allImagesData) {
+			const preview = document.getElementById("bmp-preview");
+			if (!preview || allImagesData.length === 0) return;
+
+			const firstFrame = allImagesData[0];
+			const topSlice = firstFrame.slice(0, 38);
+			const dynamicSlices = allImagesData.map(f => f.slice(38, 119));
+			const bottomSlice = firstFrame.slice(119);
+
+			const formatBlock = (label, lines) => {
+				const pre = document.createElement("pre");
+				pre.style.background = "#222";
+				pre.style.color = "#fff";
+				pre.style.padding = "1em";
+				pre.style.overflowX = "auto";
+				pre.style.marginTop = "1em";
+				pre.textContent = `${label} = [\n  ` +
+						lines.map(arr => arr.join(", ")).join(",\n  ") +
+						"\n];";
+				return pre;
+			};
+
+			const container = document.createElement("div");
+			container.style.marginTop = "3em";
+			container.appendChild(formatBlock("// 🔼 Top Static Lines", topSlice));
+			container.appendChild(formatBlock("// 🔽 Bottom Static Lines", bottomSlice));
+			container.appendChild(formatBlock("// 🎞️ Changing Middle Lines (Frame-by-Frame)", dynamicSlices));
+
+			preview.appendChild(container);
+
+			let topFrameBlock = [];
+			let bottomFrameBlock = [];
+			let dynamicFrameBlocks = [];
+
+			for (let uint8Arr of topSlice) {
+				for (let i=0;i<uint8Arr.length;i++) {
+					topFrameBlock.push(uint8Arr[i]);
+				}
+			}
+			for (let uint8Arr of bottomSlice) {
+				for (let i=0;i<uint8Arr.length;i++) {
+					bottomFrameBlock.push(uint8Arr[i]);
+				}
+			}
+			for (let frame of dynamicSlices) {
+				let frameBlock = [];
+				for (let uint8Arr of frame) {
+					for (let i=0;i<frame.length;i++) {
+						frameBlock.push(uint8Arr[i]);
+					}
+				}
+				dynamicFrameBlocks.push(frameBlock);
+			}
+
+			const downloadData = {
+				staticDataAbove: topFrameBlock,
+				staticDataBelow: bottomFrameBlock,
+				dynamicData: dynamicFrameBlocks,
+				dynamicDataStart: 38,
+				dynamicDataEnd: 119
+			}
+
+			const json = stringifyWithArrayWrap(downloadData);
+			const blob = new Blob([json], { type: "application/json" });
+			const link = document.createElement("a");
+			link.href = URL.createObjectURL(blob);
+			link.download = "portrait-jmap.json";
+			document.body.appendChild(link);
+			link.click();
+			link.style.display = 'none';
+		}
+
+		function stringifyWithArrayWrap(obj, itemsPerLine = 3, space = 2) {
+			return JSON.stringify(obj, (key, value) => value, space)
+					.replace(
+							/\[\s*([\d,\s]+)\s*\]/g,
+							(match, inner) => {
+								const nums = inner
+										.split(',')
+										.map(n => n.trim())
+										.filter(n => n.length > 0);
+
+								const lines = [];
+								for (let i = 0; i < nums.length; i += itemsPerLine) {
+									lines.push(nums.slice(i, i + itemsPerLine).join(', '));
+								}
+
+								return `[\n  ${lines.join(',\n  ')}\n]`;
+							}
+					);
+		}
+
+		window.addEventListener('DOMContentLoaded', () => {
+			document.getElementById('input').addEventListener('change', (e) => {
+				convertGifsToBmps(e.target.files);
+			});
+		});
+	</script>
+</head>
+<body>
+<h1>GIF to BMP Converter with Pixel Dump</h1>
+<input type="file" multiple accept="image/gif" id="input" class="input">
+<div id="combined-preview" class="combined-preview">
+	<div class="frame-strip" id="bmp-strip"></div>
+	<canvas id="gif-mock" class="mock-gif" width="1" height="1"></canvas>
+</div>
+<div id="bmp-preview"></div>
+</body>
+</html>

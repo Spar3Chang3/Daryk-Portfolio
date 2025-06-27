@@ -1,7 +1,12 @@
 <script lang="js">
+    import { onMount } from 'svelte';
+    import { startAllListeners } from '$lib/index.js';
     import NavBar from '$lib/components/layout/NavBar.svelte';
     import Footer from '$lib/components/layout/Footer.svelte';
-    import { onMount } from 'svelte';
+
+    onMount(() => {
+        startAllListeners();
+    });
 
     let { children } = $props();
 </script>
@@ -26,6 +31,8 @@
         --color-warning: #F59E0B;       /* Amber 500 */
         --color-error: #EF4444;         /* Red 500 */
         --color-success: #22C55E;       /* Green 500 */
+        --color-emphasis: #111827;
+        --color-code: RGBA(17, 24, 39, 0.6);
 
         /* Backgrounds and text */
         --background-standard: #F9FAFB;     /* Gray 50 */
@@ -37,6 +44,7 @@
         /* Components */
         --banner-standard: var(--color-primary);
         --banner-accent: var(--color-secondary);
+        --banner-accent-selected: rgba(59, 130, 246, 0.6);
         --hyperlink: var(--color-accent);
 
         /* Fonts */
@@ -57,6 +65,7 @@
             --background-secondary: #111827;    /* Gray 900 */
             --text-standard: #F9FAFB;
             --text-muted: #9CA3AF;
+            --color-emphasis: #E5E7EB;
             --hyperlink: #34D399;               /* Emerald 400 */
         }
     }
@@ -69,7 +78,10 @@
         display: flex;
         flex-direction: column;
         font-family: var(--font-standard);
-        background-color: var(--background-secondary);
+        background-color: var(--background-standard);
+        background-image: radial-gradient(var(--color-neutral-dark) 0.25rem, transparent 0);
+        background-size: 3rem 3rem; /* Spacing of the dots */
+        background-position: center;
         color: var(--text-standard);
     }
 
@@ -79,13 +91,29 @@
         width: 100%;
         height: 100%;
         align-items: center;
+        backdrop-filter: blur(2px);
+    }
+
+    :global(.heading-container) {
+        display: flex;
+        box-sizing: border-box; /* !Required to calc the padding without literally adding calc() */
+        width: 100%;
+        padding: 0 2rem;
+    }
+
+    :global(.page-heading) {
+        flex: 1;
+        background: var(--background-secondary);
+        padding: 1rem;
+        font-family: var(--font-special);
+        border-radius: 0.5rem;
     }
 
     main {
         flex: 1;
-        min-height: 100%;
+        height: 100%;
         width: 100%;
-        background-color: var(--background-standard);
+        background-color: transparent;
         overflow-x: hidden;
         color: var(--text-standard);
         line-height: var(--line-height-standard);

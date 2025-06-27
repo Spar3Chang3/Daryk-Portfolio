@@ -10,17 +10,15 @@
             return res.text();
         }).then((data) => {
             const blocks = data.split(/\n\s*\n/).filter(block => block);
-            let isFirstBlock = true;
 
             parsedBlocks = blocks.map(block => {
                const trimmedBlock = block.trim();
 
-               if (isFirstBlock) {
-                   isFirstBlock = false;
-                   return { type: 'h1', content: trimmedBlock };
+               if (trimmedBlock.startsWith('| ')) {
+                   return { type: 'h2', content: trimmedBlock.substring(2) } // 2 gets rid of the initial '| '
                }
                if (trimmedBlock.startsWith('> ')) {
-                   return { type: 'blockquote', content: trimmedBlock.substring(2) }; //2 gets rid of the initial '> '
+                   return { type: 'blockquote', content: trimmedBlock.substring(2) }; // 2 gets rid of the initial '> '
                }
                return { type: 'p', content: trimmedBlock }
             });
@@ -38,13 +36,14 @@
         flex-direction: column;
 
         justify-content: center;
-        padding: 0 2rem;
+        padding: 0 4rem;
     }
 
-    .parsed-text h1 {
-        background: var(--background-secondary);
-        padding: 1rem;
-        font-family: var(--font-special);
+    .parsed-text h2 {
+        padding: 0.5rem;
+        background-color: var(--color-primary);
+        color: var(--text-standard);
+        border-radius: 0.5rem;
     }
 
     .parsed-text blockquote {
@@ -59,10 +58,14 @@
     }
 </style>
 <section class="about page">
+    <div class="heading-container" aria-label="heading">
+        <h1 class="page-heading">About Me</h1>
+    </div>
+
     <div class="parsed-text">
         {#each parsedBlocks as block}
-            {#if block.type === 'h1'}
-                <h1>{block.content}</h1>
+            {#if block.type === 'h2'}
+                <h2>{block.content}</h2>
             {:else if block.type === 'blockquote'}
                 <blockquote>{block.content}</blockquote>
             {:else}

@@ -1,12 +1,17 @@
 <script lang="js">
     import { onMount } from 'svelte';
-    import { SiteLinks, DataLinks, MediaIsMobile } from '$lib/index.js';
+    import { SiteLinks, DataLinks, MediaIsMobile, PrefersReducedMotion } from '$lib/index.js';
 
     let isMobile = $state();
+    let prefersReducedMotion = $state();
 
     onMount(() => {
         MediaIsMobile.subscribe((data) => {
             isMobile = data;
+        });
+
+        PrefersReducedMotion.subscribe((data) => {
+            prefersReducedMotion = data;
         });
     });
 </script>
@@ -65,15 +70,31 @@
         width: 8rem;
         background-color: var(--banner-accent);
         border-radius: 0.5rem;
+        border: 0.1rem solid transparent;
+    }
+
+    .nav-links.animable .nav-link {
+        transition: all 0.25s ease;
+    }
+
+    .nav-links.animable:hover .nav-link {
+        opacity: 0.4;
+        filter: grayscale(50%);
+    }
+
+    .nav-links.animable:hover .nav-link:hover {
+        opacity: 1;
+        filter: none;
+        transform: scale(1.05);
+        border: 0.1rem solid var(--color-emphasis);
     }
 
     .nav-link a {
         display: grid;
         place-items: center;
-        padding: 0;
         text-decoration: none;
         color: var(--text-standard);
-        font-size: 1.25rem;
+        font-size: 1rem;
         height: 100%;
         width: 100%;
     }
@@ -92,7 +113,7 @@
         </a>
     </div>
     <div class="spacer" aria-hidden="true"></div>
-    <ul class="nav-links" role="listbox">
+    <ul class="nav-links {prefersReducedMotion ? '' : 'animable'}" role="listbox">
         <li class="nav-link">
             <a href={SiteLinks.about}>About Me</a>
         </li>
