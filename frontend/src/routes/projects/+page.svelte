@@ -35,8 +35,8 @@
 
         list-style: none;
 
-        background-color: rgba(30, 58, 100, 0.35);
-        box-shadow: 0 0 1rem rgba(17, 24, 39, 0.4);
+        background-color: var(--background-alpha);
+        box-shadow: 0 0 1rem var(--shadow-color);
         padding: 2rem;
         border-radius: 1rem;
     }
@@ -44,7 +44,7 @@
     .project-name {
         padding: 0.5rem;
         background-color: var(--color-primary);
-        color: var(--text-standard);
+        color: var(--text-compliment);
         border-radius: 0.5rem;
     }
 

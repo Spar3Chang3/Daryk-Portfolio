@@ -26,20 +26,25 @@
         --color-primary: #1E3A8A;       /* Indigo 800 */
         --color-secondary: #3B82F6;     /* Blue 500 */
         --color-accent: #10B981;        /* Emerald 500 */
-        --color-neutral: #E5E7EB;       /* Gray 200 */
+        --color-neutral: #E3E6F0;       /* Gray 200 */
         --color-neutral-dark: #374151;  /* Gray 700 */
         --color-warning: #F59E0B;       /* Amber 500 */
         --color-error: #EF4444;         /* Red 500 */
         --color-success: #22C55E;       /* Green 500 */
         --color-emphasis: #111827;
-        --color-code: RGBA(17, 24, 39, 0.6);
+        --color-code: rgba(17, 24, 39, 0.6);
 
         /* Backgrounds and text */
         --background-standard: #F9FAFB;     /* Gray 50 */
         --background-secondary: #FFFFFF;
         --text-standard: #111827;           /* Gray 900 */
         --text-muted: #6B7280;              /* Gray 500 */
+        --text-compliment: #F6FAFF;
         --text-inverse: #FFFFFF;
+        --dot-bg: var(--color-neutral);
+        --background-alpha: rgba(200, 220, 255, 0.5);
+        --shadow-color: rgba(30, 58, 100, 0.1);
+        --shadow-color-emphasis: rgba(30, 58, 100, 0.4);
 
         /* Components */
         --banner-standard: var(--color-primary);
@@ -66,7 +71,11 @@
             --text-standard: #F9FAFB;
             --text-muted: #9CA3AF;
             --color-emphasis: #E5E7EB;
-            --hyperlink: #34D399;               /* Emerald 400 */
+            --hyperlink: #34D399; /* Emerald 400 */
+            --dot-bg: var(--color-neutral-dark);
+            --background-alpha: rgba(30, 58, 100, 0.35);
+            --shadow-color: rgba(17, 24, 39, 0.4);
+            --shadow-color-emphasis: rgba(17, 24, 39, 0.6);
         }
     }
 
@@ -94,7 +103,7 @@
         flex-direction: column;
         font-family: var(--font-standard);
         background-color: var(--background-standard);
-        background-image: radial-gradient(var(--color-neutral-dark) 0.25rem, transparent 0);
+        background-image: radial-gradient(var(--dot-bg) 0.25rem, transparent 0);
         background-size: 3rem 3rem; /* Spacing of the dots */
         background-position: center;
         color: var(--text-standard);
@@ -124,6 +133,7 @@
             padding: 1rem;
             font-family: var(--font-special);
             border-radius: 0.5rem;
+            box-shadow: 0 0 1rem var(--shadow-color);
         }
 
         @media only screen and (max-width: 768px) {

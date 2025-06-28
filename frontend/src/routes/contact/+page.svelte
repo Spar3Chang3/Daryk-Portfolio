@@ -39,8 +39,8 @@
 
         padding: 2rem;
 
-        background-color: rgba(30, 58, 100, 0.35);
-        box-shadow: 0 0 1rem rgba(17, 24, 39, 0.4);
+        background-color: var(--background-alpha);
+        box-shadow: 0 0 1rem var(--shadow-color);
         border-radius: 1rem;
     }
 
@@ -64,8 +64,8 @@
         box-sizing: border-box;
 
         padding: 2rem;
-        background-color: rgba(30, 58, 100, 0.35);
-        box-shadow: 0 0 1rem rgba(17, 24, 39, 0.4);
+        background-color: var(--background-alpha);
+        box-shadow: 0 0 1rem var(--shadow-color);
         border-radius: 1rem;
         gap: 1rem;
     }
@@ -74,7 +74,7 @@
         width: 30rem;
         padding: 0.5rem;
         background-color: var(--color-primary);
-        color: var(--text-standard);
+        color: var(--text-compliment);
         border-radius: 0.5rem;
     }
 
@@ -93,7 +93,7 @@
         background-color: var(--background-secondary);
         border: 0.1rem solid var(--color-neutral-dark);
         border-radius: 0.5rem;
-        color: white;
+        color: var(--text-standard);
         font-size: 1.2rem;
     }
 
@@ -104,7 +104,7 @@
         background-color: var(--background-secondary);
         border: 0.1rem solid var(--color-neutral-dark);
         border-radius: 0.5rem;
-        color: white;
+        color: var(--text-standard);
         font-size: 1.2rem;
     }
 
@@ -154,7 +154,7 @@
     </div>
     <div class="contact-content">
         <div class="contact-message">
-            <p>The best way to contact me directly is through <a href="{ExternalLinks.email}">email</a>, however, you may leave a contact message below with your email and I will later respond with my professional email within 2 business days.</p>
+            <p>The best way to contact me directly is through <a href="{ExternalLinks.email}">email</a>, however, you may leave a contact message below and I will respond from my professional email within 2 business days.</p>
         </div>
         <form class="message-entry" onsubmit={handleSubmit}>
             <h2>Message Me</h2>

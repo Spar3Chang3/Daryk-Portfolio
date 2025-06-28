@@ -44,7 +44,7 @@
         align-items: center;
 
         gap: 1rem;
-        padding: 2rem;
+        padding: 1rem 2rem;
     }
 
     .parsed-text {
@@ -53,15 +53,15 @@
 
         justify-content: center;
         padding: 0 2rem;
-        background-color: rgba(30, 58, 100, 0.35);
-        box-shadow: 0 0 1rem rgba(17, 24, 39, 0.4);
+        background-color: var(--background-alpha);
+        box-shadow: 0 0 1rem var(--shadow-color);
         border-radius: 1rem;
     }
 
     .parsed-text h2 {
         padding: 0.5rem;
         background-color: var(--color-primary);
-        color: var(--text-standard);
+        color: var(--text-compliment);
         border-radius: 0.5rem;
     }
 

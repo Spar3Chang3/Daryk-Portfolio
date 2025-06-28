@@ -190,8 +190,8 @@
         gap: 1rem;
 
         backdrop-filter: blur(2px);
-        background-color: rgba(30, 58, 100, 0.35);
-        box-shadow: 0 0 1rem rgba(17, 24, 39, 0.4);
+        background-color: var(--background-alpha);
+        box-shadow: 0 0 1rem var(--shadow-color);
         border-radius: 1rem;
         padding: 2rem;
     }
@@ -241,7 +241,7 @@
 
         text-align: center;
         text-decoration: none;
-        color: whitesmoke;
+        color: var(--text-compliment);
         background-color: var(--banner-accent);
         border-radius: 0.5rem;
         border: 0.1rem solid transparent;
@@ -289,7 +289,7 @@
 
         .navigation .nav-link {
             width: 90%;
-            box-shadow: 0 0 1rem rgba(17, 24, 39, 0.4);
+            box-shadow: 0 0 1rem var(--shadow-color);
         }
 
         .navigation.animable .nav-link {
@@ -308,7 +308,7 @@
 
         .navigation.animable .nav-link:active {
             transform: scale(0.9);
-            box-shadow: 0 0 0.25rem rgba(17, 24, 39, 0.6);
+            box-shadow: 0 0 0.25rem var(--shadow-color-emphasis);
         }
     }
 </style>
