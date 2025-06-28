@@ -17,11 +17,13 @@
         flex-direction: column;
         flex: 1;
 
+        width: 100%;
+
         justify-content: center;
         align-items: center;
         box-sizing: border-box;
 
-        padding: 0 2rem 1rem 2rem;
+        padding: 0 2rem;
         gap: 1rem;
     }
 
@@ -109,6 +111,42 @@
     input:focus, input:active, textarea:focus, textarea:active {
         border: 0.1rem solid var(--color-secondary);
     }
+
+    @media only screen and (max-width: 768px) {
+        .contact-content {
+            padding: 0 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .contact-message {
+            padding: 1rem;
+        }
+
+        .contact-message p {
+            font-size: 1rem;
+            line-height: var(--line-height-standard);
+        }
+
+        .message-entry {
+            padding: 1rem;
+        }
+
+        .message-entry h2 {
+            width: 100%;
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        label {
+            width: 100%;
+        }
+
+        input[type=text], input[type=email], textarea {
+            width: 100%;
+            font-size: 1rem;
+        }
+    }
+
 </style>
 <section class="contact page">
     <div class="heading-container">

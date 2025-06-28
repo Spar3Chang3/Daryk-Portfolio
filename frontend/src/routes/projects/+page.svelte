@@ -24,7 +24,7 @@
 
         list-style: none;
         gap: 1rem;
-        padding: 0 2rem 1rem 2rem;
+        padding: 0 2rem;
     }
 
     .project {
@@ -66,6 +66,21 @@
 
     a {
         color: var(--hyperlink);
+    }
+
+    @media only screen and (max-width: 768px) {
+        .project-list {
+            padding: 0 1rem 1rem 1rem;
+        }
+
+        .project {
+            padding: 1rem;
+        }
+
+        .project-name {
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
     }
 
 </style>

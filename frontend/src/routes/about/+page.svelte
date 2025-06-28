@@ -31,12 +31,31 @@
     });
 </script>
 <style lang="css">
+    .about-content {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+
+        height: 100%;
+        width: 100%;
+        box-sizing: border-box;
+
+        align-items: center;
+
+        gap: 1rem;
+        padding: 2rem;
+    }
+
     .parsed-text {
         display: flex;
         flex-direction: column;
 
         justify-content: center;
-        padding: 0 4rem;
+        padding: 0 2rem;
+        background-color: rgba(30, 58, 100, 0.35);
+        box-shadow: 0 0 1rem rgba(17, 24, 39, 0.4);
+        border-radius: 1rem;
     }
 
     .parsed-text h2 {
@@ -56,21 +75,37 @@
     .parsed-text p {
         font-size: 1.2rem;
     }
+
+    @media only screen and (max-width: 768px) {
+        .about-content {
+            padding: 1rem;
+        }
+
+        .parsed-text {
+            padding: 1rem;
+        }
+
+        .parsed-text blockquote {
+            width: 100%;
+            margin-left: 0.5rem;
+        }
+    }
 </style>
 <section class="about page">
     <div class="heading-container" aria-label="heading">
         <h1 class="page-heading">About Me</h1>
     </div>
-
-    <div class="parsed-text">
-        {#each parsedBlocks as block}
-            {#if block.type === 'h2'}
-                <h2>{block.content}</h2>
-            {:else if block.type === 'blockquote'}
-                <blockquote>{block.content}</blockquote>
-            {:else}
-                <p>{block.content}</p>
-            {/if}
-        {/each}
+    <div class="about-content">
+        <div class="parsed-text">
+            {#each parsedBlocks as block}
+                {#if block.type === 'h2'}
+                    <h2>{block.content}</h2>
+                {:else if block.type === 'blockquote'}
+                    <blockquote>{block.content}</blockquote>
+                {:else}
+                    <p>{block.content}</p>
+                {/if}
+            {/each}
+        </div>
     </div>
 </section>

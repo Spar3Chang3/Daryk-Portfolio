@@ -70,6 +70,21 @@
         }
     }
 
+    main {
+        flex: 1;
+        box-sizing: border-box;
+        height: 100%;
+        width: 100%;
+        background-color: transparent;
+        overflow-x: hidden;
+        color: var(--text-standard);
+        line-height: var(--line-height-standard);
+    }
+
+    main p {
+        font-size: var(--standard-text-size);
+    }
+
     :global(html, body) {
         margin: 0;
         padding: 0;
@@ -85,42 +100,41 @@
         color: var(--text-standard);
     }
 
-    :global(.page) {
-        display: flex;
-        flex-direction: column;
-        width: 100%;
-        height: 100%;
-        align-items: center;
-        backdrop-filter: blur(2px);
-    }
+    :global {
+        .page {
+            display: flex;
+            flex: 1;
+            flex-direction: column;
+            width: 100%;
+            min-height: 100%;
+            align-items: center;
+            backdrop-filter: blur(2px);
+        }
 
-    :global(.heading-container) {
-        display: flex;
-        box-sizing: border-box; /* !Required to calc the padding without literally adding calc() */
-        width: 100%;
-        padding: 0 2rem;
-    }
+        .heading-container {
+            display: flex;
+            box-sizing: border-box; /* !Required to calc the padding without literally adding calc() */
+            width: 100%;
+            padding: 0 2rem;
+        }
 
-    :global(.page-heading) {
-        flex: 1;
-        background: var(--background-secondary);
-        padding: 1rem;
-        font-family: var(--font-special);
-        border-radius: 0.5rem;
-    }
+        .page-heading {
+            flex: 1;
+            background: var(--background-secondary);
+            padding: 1rem;
+            font-family: var(--font-special);
+            border-radius: 0.5rem;
+        }
 
-    main {
-        flex: 1;
-        height: 100%;
-        width: 100%;
-        background-color: transparent;
-        overflow-x: hidden;
-        color: var(--text-standard);
-        line-height: var(--line-height-standard);
-    }
+        @media only screen and (max-width: 768px) {
+            .page {
+                padding-bottom: 4rem;
+            }
 
-    main p {
-        font-size: var(--standard-text-size);
+            .heading-container {
+                padding: 0 1rem;
+            }
+        }
     }
 </style>
 
