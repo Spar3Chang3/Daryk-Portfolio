@@ -30,7 +30,8 @@ export const DataLinks = {
 
 export const ExternalLinks = {
     orionLab: 'https://uisorionlabs.web.app/',
-    acidFog: 'https://acidfog.com'
+    acidFog: 'https://acidfog.com',
+    email: 'mailto:darykdbaker@gmail.com'
 }
 
 export const StdPlatforms = {

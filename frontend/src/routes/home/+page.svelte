@@ -7,6 +7,8 @@
     const PORTRAIT_HEIGHT = 170;
     const TOTAL_FRAMES = 21;
 
+    const SHADOW_MULTIPLIER = 1.25;
+
     let prefersReducedMotion = $state();
 
     let portraitCanvas = $state();
@@ -85,17 +87,22 @@
             const offsetX = e.clientX - portraitRect.centerX;
             const offsetY = e.clientY - portraitRect.centerY;
 
-            // TODO: implement a way to return the image rotation to 0 if the cursor enters its bounding box
-
             // Invert the multipliers to rotate towards the mouse
             let rotateX = (offsetY / portraitRect.rect.height) * 20;   // top-bottom tilt
             let rotateY = (offsetX / portraitRect.rect.width) * -20;  // left-right tilt
 
-            // This clamping can be adjusted if you want a different range of motion
+            // Determine shadow offset based on rotation
+            const shadowX = Math.max(Math.min(rotateY * SHADOW_MULTIPLIER, 50), -50);
+            const shadowY = -Math.max(Math.min(rotateX * SHADOW_MULTIPLIER, 50), -50);
+
+            // Determine blur based on average
+            const blur = Math.min((Math.abs(rotateX) + Math.abs(rotateY))/2, 30);
+
+            // This clamping can be adjusted for different range of motion
             rotateX = Math.max(Math.min(rotateX, 30), -30);
             rotateY = Math.max(Math.min(rotateY, 30), -30);
 
-            canvasContainer.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+            canvasContainer.style = `transform: rotateX(${rotateX}deg) rotateY(${rotateY}deg); box-shadow: ${shadowX}px ${shadowY}px ${blur}px 0 var(--color-code);`;
         }
 
         initPortrait.src = DataLinks.portraitInit;
@@ -186,6 +193,7 @@
 
     .portfolio-name {
         font-family: var(--font-special);
+        font-size: 2rem;
     }
 
     .navigation {
