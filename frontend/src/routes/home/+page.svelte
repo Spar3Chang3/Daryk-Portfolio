@@ -1,7 +1,8 @@
 <script lang="js">
     import { onMount } from 'svelte';
     import { onNavigate } from '$app/navigation';
-    import { DataLinks, SiteLinks, PrefersReducedMotion, MediaIsMobile } from '$lib/index.js';
+    import { DataLinks, SiteLinks, PrefersReducedMotion, MediaIsMobile, GetCurrentPagePath } from '$lib/index.js';
+    import { updateStats, StatsId } from '$lib/stats.js';
 
     const PORTRAIT_WIDTH = 220;
     const PORTRAIT_HEIGHT = 170;
@@ -33,6 +34,16 @@
     onMount(async () => {
         document.getElementById('header').style.display = 'none';
         document.getElementById('footer').style.display = 'none';
+
+        // GIVE ME YOUR DATA >:)
+        StatsId.subscribe((data) => {
+           const stats = {
+               id: data,
+               leaveTime: Date.now(),
+               pagesVisited: GetCurrentPagePath()
+           }
+           updateStats(stats);
+        });
 
         // Never know if the user gets headaches easily or just really hates animations :3
         PrefersReducedMotion.subscribe((data) => {

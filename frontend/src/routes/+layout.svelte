@@ -1,11 +1,13 @@
 <script lang="js">
     import { onMount } from 'svelte';
     import { startAllListeners } from '$lib/index.js';
+    import { initStats } from '$lib/stats.js';
     import NavBar from '$lib/components/layout/NavBar.svelte';
     import Footer from '$lib/components/layout/Footer.svelte';
 
     onMount(() => {
         startAllListeners();
+        initStats();
     });
 
     let { children } = $props();

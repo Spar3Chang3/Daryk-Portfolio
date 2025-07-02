@@ -1,12 +1,12 @@
 import { writable } from 'svelte/store';
 import { GetCurrentPagePath, GetWorldTime, DetectTimezone, DetectPlatform } from '$lib/index.js';
 
-const StatsLink = 'https://dbaker.analytics.edsmcserv.com/add-stat';
+const StatsLink = 'http://localhost:7000/api/';
 // TODO: make sure backend rejects requests from not my domain :)
 
-const StatsData = writable({});
-const StatsId = writable("");
-const StatsInitialized = writable(false);
+export const StatsData = writable({});
+export const StatsId = writable("");
+export const StatsInitialized = writable(false);
 
 export async function initStats() {
     let timeStats;
@@ -25,9 +25,9 @@ export async function initStats() {
     const platform = DetectPlatform();
     const screen = `${window.innerWidth}x${window.innerHeight}`;
 
-    StatsData.set({
+    const stats = {
         visitTime: timeStats.unixtime,
-        leaveTime: null,
+        leaveTime: timeStats.unixtime,
         timezone: timeStats.timezone,
         userAgent,
         platform,
@@ -35,25 +35,44 @@ export async function initStats() {
         pagesVisited: [
             GetCurrentPagePath()
         ]
-    });
+    }
 
-    StatsInitialized.set(true);
+    StatsData.set(stats);
+    await sendStats(stats).then(() => {
+        StatsInitialized.set(true);
+    });
 }
 
 export async function sendStats(stats) {
-    let res = await fetch(StatsLink, {method: 'POST', body: JSON.stringify(stats)}).then(data => data.json());
-    StatsId.set(res.id);
-    // TODO: update backend to send the id, status, and message for status, then update this to check the status
+    let res = await fetch(StatsLink + "addStats", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(stats)
+    }).then(data => data.json());
+    if (res.status != 201 || res.status != 200) {
+        console.error('Failed to send stats:', res.status, res.message);
+    } else {
+        StatsId.set(res.content);
+    }
+    console.log(res);
 }
 
 export async function updateStats(stats) {
-    let res = await fetch(StatsLink, {method: 'PUT', body: JSON.stringify({
+    let res = await fetch(StatsLink + "updateStats", {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
             id: stats.id,
-            leaveTime: stats.leaveTime
-        })}).then(data => data.json());
-
+            leaveTime: stats.leaveTime,
+            pagesVisited: stats.pagesVisited
+        })
+    }).then(data => data.json());
     if (res.status !== 200) {
-        console.error('Failed to update stats: ', res.status, res.message);
+        console.error('Failed to update stats:', res.status, res.message);
     }
 }
 
