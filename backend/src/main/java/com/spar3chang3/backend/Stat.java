@@ -30,4 +30,17 @@ public class Stat {
         this.pagesVisited = pagesVisited;
     }
 
+    @Override
+    public String toString() {
+        return "{" + String.format("id: %s, ", id) +
+                String.format("visitTime: %d, ", visitTime) +
+                String.format("leaveTime: %d, ", leaveTime) +
+                String.format("timezone: %s, ", timezone) +
+                String.format("userAgent: %s, ", userAgent) +
+                String.format("platform: %s, ", platform) +
+                String.format("screen: %s, ", screen) +
+                String.format("pagesVisited: %s", pagesVisited.toString()) +
+                "}";
+    }
+
 }

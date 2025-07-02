@@ -19,19 +19,16 @@ public class App {
         /* --- ENDPOINTS --- */
         app.post((API_PATH + "addStats"), ctx -> {
             Stat newStat = ctx.bodyAsClass(Stat.class);
-            final String message = H2Database.addStat(newStat);
-            if (message.matches(Utils.ID_REGEX)) {
-                ctx.status(200);
-            } else {
-                ctx.status(504);
-            }
-            ctx.result(message);
+            final Status<String> message = H2Database.addStat(newStat);
+            ctx.status(message.getCode());
+            ctx.json(message);
         });
 
         app.put((API_PATH + "updateStats"), ctx -> {
             StatUpdate update = ctx.bodyAsClass(StatUpdate.class);
-            final int status = H2Database.updateStat(update);
-            ctx.status(status).res();
+            final Status<Void> message = H2Database.updateStat(update);
+            ctx.status(message.getCode());
+            ctx.json(message);
         });
     }
 }

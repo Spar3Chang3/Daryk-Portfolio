@@ -1,11 +1,10 @@
 package com.spar3chang3.backend;
 
 import java.sql.*;
-import java.util.ArrayList;
 import java.util.List;
 
 public class H2Database {
-    private static final String JDBC_URL = "jdbc:h2:./data/stats;DB_CLOSE_ON_EXIT=FALSE"; // TODO: change this from literally being inside the java database to its own separate folder;
+    private static final String JDBC_URL = "jdbc:h2:./resources/stats;DB_CLOSE_ON_EXIT=FALSE"; // TODO: change this from literally being inside the java database to its own separate folder;
     private static final String JDBC_USER = "stat";
     private static final String JDBC_PASS = "";
 
@@ -28,12 +27,14 @@ public class H2Database {
 
     private static final String STAT_TOTAL_UPDATE = "UPDATE stats SET leaveTime = ?, pagesVisited = ? WHERE id = ?";
 
+    private static final String STAT_SELECT_PAGES = "Select pagesVisited WHERE id = ?";
+
     private static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(JDBC_URL, JDBC_USER, JDBC_PASS);
     }
 
     protected static void initDatabase() {
-        try (Connection conn = getConnection(); Statement statement = conn.createStatement()) {
+        try (Connection statConn = getConnection(); Statement statement = statConn.createStatement()) {
             statement.execute(TABLE_INIT);
         } catch (SQLException e) {
             System.err.println("Database init error: " + e.getMessage());
@@ -42,8 +43,8 @@ public class H2Database {
         }
     }
 
-    protected static String addStat(Stat stat) {
-        try (Connection conn = getConnection(); PreparedStatement preState = conn.prepareStatement(STAT_INIT)) {
+    protected static Status<String> addStat(Stat stat) {
+        try (Connection statConn = getConnection(); PreparedStatement preState = statConn.prepareStatement(STAT_INIT)) {
             preState.setString(1, stat.id);
             preState.setLong(2, stat.visitTime);
             preState.setNull(3, java.sql.Types.BIGINT);
@@ -54,71 +55,37 @@ public class H2Database {
             preState.setObject(8, stat.pagesVisited.toArray());
 
             preState.executeUpdate();
-            return stat.id; // Return this for the ultimate response from backend to frontend
+            return new Status<>(StatusCode.CREATED, stat.id);
         } catch (SQLException e) {
             System.err.println("Error adding user: " + e.getMessage());
             e.printStackTrace();
-            return "ID was not created, an error occurred: " + e.getMessage();
+            return new Status<>(StatusCode.INTERNAL_SERVER_ERROR);
         }
     }
 
-    // TODO: update these updatePages and updateLeaveTime functions to include a message and status, preferably with my own errors or whatever
-    // additionally, change 504 to 500, update functions for nullptr safety, and the fact that I am required to update every stat from UPDATE_TOTAL_STAT
-    // this is kind of a mess right now, but theoretically it functions poorly. Daryk, do better :)
-
-    protected static int updatePagesStat(String id, List<String> pagesVisited) {
-        final String sanitizedId = Utils.SanitizeId(id);
-        if (sanitizedId == null) {
-            return 417; // "Expectation Failed"
-        }
-        try (Connection conn = getConnection(); PreparedStatement preState = conn.prepareStatement(STAT_PAGES_UPDATE);) {
-            preState.setObject(1, pagesVisited.toArray());
-            preState.setString(2, sanitizedId);
-            preState.executeUpdate();
-            return 200;
-        } catch (SQLException e) {
-            System.err.println("Error updating stats: " + e.getMessage());
-            e.printStackTrace();
-            return 504;
-        }
-    }
-
-    protected static int updateLeaveTimeStat(String id, Long leaveTime) {
-        final String sanitizedId = Utils.SanitizeId(id);
-        if (sanitizedId == null) {
-            return 417;
-        }
-        try (Connection conn = getConnection(); PreparedStatement preState = conn.prepareStatement(STAT_LEAVE_TIME_UPDATE);) {
-            preState.setLong(1, leaveTime);
-            preState.setString(2, sanitizedId);
-            preState.executeUpdate();
-            return 200;
-        } catch (SQLException e) {
-            System.err.println("Error updating stats: " + e.getMessage());
-            e.printStackTrace();
-            return 504;
-        }
-    }
-
-    protected static int updateStat(StatUpdate update) {
+    protected static Status<Void> updateStat(StatUpdate update) {
         update.id = Utils.SanitizeId(update.id);
         if (update.id == null) {
-            return 417;
+            return new Status<>(StatusCode.EXPECTATION_FAILED);
         }
-        try (Connection conn = getConnection(); PreparedStatement preState = conn.prepareStatement(STAT_TOTAL_UPDATE);) {
-            if (update.leaveTime != null) {
+        try (Connection statConn = getConnection(); PreparedStatement preState = statConn.prepareStatement(STAT_TOTAL_UPDATE);) {
+            if (update.leaveTime != null || update.leaveTime != -1) {
                 preState.setLong(1, update.leaveTime);
+            } else {
+                preState.setNull(1, -1);
             }
             if (update.pagesVisited != null) {
                 preState.setObject(2, update.pagesVisited.toArray());
+            } else {
+                preState.setObject(2, List.of("Somehow this got nulled lmao").toString());
             }
             preState.setString(3, update.id);
             preState.executeUpdate();
-            return 200;
+            return new Status<>(StatusCode.OK);
         } catch (SQLException e) {
             System.err.println("Error updating stats: " + e.getMessage());
             e.printStackTrace();
-            return 504;
+            return new Status<>(StatusCode.INTERNAL_SERVER_ERROR);
         }
     }
 }
