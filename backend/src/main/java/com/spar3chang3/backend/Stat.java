@@ -4,10 +4,10 @@ import java.util.List;
 
 public class Stat {
 
-    public String id;
+    public String id = Utils.CreateId();
 
     public Long visitTime;
-    public Long leaveTime;
+    public Long leaveTime = -1L;
 
     public String timezone;
     public String userAgent;
@@ -20,7 +20,6 @@ public class Stat {
     public Stat() {}
 
     public Stat(Long visitTime, Long leaveTime, String timezone, String userAgent, String platform, String screen, List<String> pagesVisited) {
-        this.id = Utils.CreateId();
         this.visitTime = visitTime;
         this.leaveTime = leaveTime;
         this.timezone = timezone;

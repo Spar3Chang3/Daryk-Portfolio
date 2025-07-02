@@ -5,7 +5,7 @@ import java.util.List;
 public class StatUpdate {
     public String id;
 
-    public Long leaveTime;
+    public Long leaveTime = -1L;
 
     public List<String> pagesVisited;
 

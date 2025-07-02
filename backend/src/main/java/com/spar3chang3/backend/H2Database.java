@@ -19,15 +19,13 @@ public class H2Database {
             "pagesVisited VARCHAR ARRAY NOT NULL" +
             ")";
 
-    private static final String STAT_INIT = "INSERT INTO stats (id, visitTime, leaveTime, timezone, userAgent, platform, screen, pagesVisited) VALUES (?, ?, NULL, ?, ?, ?, ?, ARRAY[])";
+    private static final String STAT_INIT = "INSERT INTO stats (id, visitTime, leaveTime, timezone, userAgent, platform, screen, pagesVisited) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
     private static final String STAT_PAGES_UPDATE = "UPDATE stats SET pagesVisited = ? WHERE id = ?";
 
     private static final String STAT_LEAVE_TIME_UPDATE = "UPDATE stats SET leaveTime = ? WHERE id = ?";
 
     private static final String STAT_TOTAL_UPDATE = "UPDATE stats SET leaveTime = ?, pagesVisited = ? WHERE id = ?";
-
-    private static final String STAT_SELECT_PAGES = "Select pagesVisited WHERE id = ?";
 
     private static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(JDBC_URL, JDBC_USER, JDBC_PASS);
@@ -44,10 +42,20 @@ public class H2Database {
     }
 
     protected static Status<String> addStat(Stat stat) {
-        try (Connection statConn = getConnection(); PreparedStatement preState = statConn.prepareStatement(STAT_INIT)) {
+        try (Connection statConn = getConnection(); PreparedStatement preState = statConn.prepareStatement(STAT_INIT);) {
+            if (stat.id == null) {
+                stat.id = Utils.CreateId();
+            }
+
             preState.setString(1, stat.id);
             preState.setLong(2, stat.visitTime);
-            preState.setNull(3, java.sql.Types.BIGINT);
+
+            if (stat.leaveTime != null) {
+                preState.setLong(3, stat.leaveTime); // Set the actual long value
+            } else {
+                preState.setNull(3, java.sql.Types.BIGINT); // Explicitly set as NULL
+            }
+
             preState.setString(4, stat.timezone);
             preState.setString(5, stat.userAgent);
             preState.setString(6, stat.platform);

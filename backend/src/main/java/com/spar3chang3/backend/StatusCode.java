@@ -14,16 +14,16 @@ public enum StatusCode {
     INTERNAL_SERVER_ERROR(500, "Internal Server Error"), // General server-side error (e.g., database error)
     GATEWAY_TIMEOUT(504, "Gateway Timeout"); // Upstream server did not respond (less common for direct app errors)
 
-    private final int code;
+    private final int status;
     private final String message;
 
     StatusCode(int code, String message) {
-        this.code = code;
+        this.status = code;
         this.message = message;
     }
 
-    public int getCode() {
-        return code;
+    public int getStatus() {
+        return status;
     }
 
     public String getMessage() {
@@ -32,6 +32,6 @@ public enum StatusCode {
 
     @Override
     public String toString() {
-        return code + " " + message;
+        return status + " " + message;
     }
 }

@@ -11,29 +11,29 @@ public class Status<T> {
     //JACKSON
     public Status() {}
 
-    public Status(int code, String message, T content) {
-        this.status = code;
+    public Status(int status, String message, T content) {
+        this.status = status;
         this.message = message;
         this.content = content;
         hasContent = true;
     }
 
-    public Status(int code, String message) {
-        this.status = code;
+    public Status(int status, String message) {
+        this.status = status;
         this.message = message;
         this.content = null;
         hasContent = false;
     }
 
     public Status(StatusCode status, T content) {
-        this.status = status.getCode();
+        this.status = status.getStatus();
         this.message = status.getMessage();
         this.content = content;
         hasContent = true;
     }
 
     public Status(StatusCode status) {
-        this.status = status.getCode();
+        this.status = status.getStatus();
         this.message = status.getMessage();
         this.content = null;
         hasContent = false;
