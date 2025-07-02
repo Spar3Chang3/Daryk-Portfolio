@@ -5,6 +5,7 @@ const StatsLink = 'https://dbaker.analytics.edsmcserv.com/add-stat';
 // TODO: make sure backend rejects requests from not my domain :)
 
 const StatsData = writable({});
+const StatsId = writable("");
 const StatsInitialized = writable(false);
 
 export async function initStats() {
@@ -22,11 +23,11 @@ export async function initStats() {
 
     const userAgent = navigator.userAgent;
     const platform = DetectPlatform();
-    const screen = { height: window.innerHeight, width: window.innerWidth };
+    const screen = `${window.innerWidth}x${window.innerHeight}`;
 
     StatsData.set({
         visitTime: timeStats.unixtime,
-        leaveTime: -1,
+        leaveTime: null,
         timezone: timeStats.timezone,
         userAgent,
         platform,
@@ -38,3 +39,21 @@ export async function initStats() {
 
     StatsInitialized.set(true);
 }
+
+export async function sendStats(stats) {
+    let res = await fetch(StatsLink, {method: 'POST', body: JSON.stringify(stats)}).then(data => data.json());
+    StatsId.set(res.id);
+    // TODO: update backend to send the id, status, and message for status, then update this to check the status
+}
+
+export async function updateStats(stats) {
+    let res = await fetch(StatsLink, {method: 'PUT', body: JSON.stringify({
+            id: stats.id,
+            leaveTime: stats.leaveTime
+        })}).then(data => data.json());
+
+    if (res.status !== 200) {
+        console.error('Failed to update stats: ', res.status, res.message);
+    }
+}
+
