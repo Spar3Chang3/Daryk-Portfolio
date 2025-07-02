@@ -1,7 +1,7 @@
 <script lang="js">
     import { onMount } from 'svelte';
     import { onNavigate } from '$app/navigation';
-    import { DataLinks, SiteLinks, PrefersReducedMotion, MediaIsMobile, GetCurrentPagePath } from '$lib/index.js';
+    import { DataLinks, SiteLinks, PrefersReducedMotion, MediaIsMobile } from '$lib/index.js';
     import { updateStats, StatsId } from '$lib/stats.js';
 
     const PORTRAIT_WIDTH = 220;
@@ -36,14 +36,8 @@
         document.getElementById('footer').style.display = 'none';
 
         // GIVE ME YOUR DATA >:)
-        StatsId.subscribe((data) => {
-           const stats = {
-               id: data,
-               leaveTime: Date.now(),
-               pagesVisited: GetCurrentPagePath()
-           }
-           updateStats(stats);
-        });
+        // The only reason I'm not making this a get is because you may just make it to the homepage before the id is returned from server. Not the best solution but it's
+        updateStats().catch(err => console.error(err));
 
         // Never know if the user gets headaches easily or just really hates animations :3
         PrefersReducedMotion.subscribe((data) => {

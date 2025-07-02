@@ -1,6 +1,7 @@
 <script lang="js">
     import { onMount } from 'svelte';
     import { ExternalLinks } from '$lib/index.js';
+    import { updateStats } from '$lib/stats.js';
 
     let organizationInput = $state();
     let emailInput = $state();
@@ -10,6 +11,9 @@
         e.preventDefault();
     }
 
+    onMount(() => {
+        updateStats();
+    });
 </script>
 <style lang="css">
     .contact-content {

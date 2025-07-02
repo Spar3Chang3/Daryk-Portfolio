@@ -1,13 +1,22 @@
 <script lang="js">
     import { onMount } from 'svelte';
-    import { startAllListeners } from '$lib/index.js';
-    import { initStats } from '$lib/stats.js';
+    import { startAllListeners, GetWorldTime } from '$lib/index.js';
+    import { initStats, updateStats } from '$lib/stats.js';
     import NavBar from '$lib/components/layout/NavBar.svelte';
     import Footer from '$lib/components/layout/Footer.svelte';
 
     onMount(() => {
         startAllListeners();
-        initStats();
+        initStats().catch(err => {
+            console.log(err);
+        });
+
+        window.addEventListener('beforeunload', async () => {
+            const leaveTime = GetWorldTime();
+            await leaveTime.then(() => {
+               updateStats(leaveTime);
+            });
+        });
     });
 
     let { children } = $props();

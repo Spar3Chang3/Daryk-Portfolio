@@ -1,4 +1,4 @@
-import { writable } from 'svelte/store';
+import { writable, get } from 'svelte/store';
 import { GetCurrentPagePath, GetWorldTime, DetectTimezone, DetectPlatform } from '$lib/index.js';
 
 const StatsLink = 'http://localhost:7000/api/';
@@ -59,20 +59,29 @@ export async function sendStats(stats) {
     console.log(res);
 }
 
-export async function updateStats(stats) {
-    let res = await fetch(StatsLink + "updateStats", {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            id: stats.id,
-            leaveTime: stats.leaveTime,
-            pagesVisited: stats.pagesVisited
-        })
-    }).then(data => data.json());
-    if (res.status !== 200) {
-        console.error('Failed to update stats:', res.status, res.message);
+export async function updateStats(leaveTime) {
+    if (get(StatsInitialized)) {
+        let currentPagesVisited = get(StatsData).pagesVisited;
+        currentPagesVisited = currentPagesVisited.filter(page => page !== GetCurrentPagePath());
+        const stats = {
+            id: get(StatsId),
+            leaveTime: leaveTime ? leaveTime : Date.now(), // Yes this is now user only but ughhhh I will change on window leave
+            pagesVisited: [
+                ...currentPagesVisited,
+                GetCurrentPagePath()
+            ]
+        }
+
+        let res = await fetch(StatsLink + "updateStats", {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(stats)
+        }).then(data => data.json());
+        if (res.status !== 200) {
+            console.error('Failed to update stats:', res.status, res.message);
+        }
     }
 }
 

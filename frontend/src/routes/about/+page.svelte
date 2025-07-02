@@ -1,6 +1,7 @@
 <script lang="js">
     import { onMount } from 'svelte';
     import { DataLinks } from '$lib/index.js';
+    import { updateStats } from '$lib/stats.js';
 
     let parsedBlocks = $state([]);
 
@@ -28,6 +29,7 @@
 
     onMount(async () => {
         await fetchAndParseText();
+        updateStats();
     });
 </script>
 <style lang="css">
